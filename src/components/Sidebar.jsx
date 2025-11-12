@@ -1,22 +1,53 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { 
-  FaTachometerAlt, 
-  FaBlog, 
-  FaUsers, 
-  FaCog, 
-  FaSignOutAlt 
+import {
+  FaTachometerAlt,
+  FaBlog,
+  FaUsers,
+  FaCog,
+  FaSignOutAlt,
+  FaTimes,
 } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import {logout} from "../Slices/Auth/authSlice";
+import { toast } from "react-toastify";
 
-const Sidebar = () => {
-  const baseLinkClass = "flex items-center py-2 px-4 rounded-lg transition-all duration-200 text-sm text-brand-500 hover:text-white";
-  const activeLinkClass = "bg-gradient-to-r from-purple-400 to-purple-600 text-white";
+
+const Sidebar = ({ onClose }) => {
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+
+  const baseLinkClass =
+    "flex items-center py-2 px-4 rounded-lg transition-all duration-200 text-sm text-brand-500 hover:text-white";
+  const activeLinkClass =
+    "bg-gradient-to-r from-purple-400 to-purple-600 text-white";
 
   const iconClass = "mr-3";
 
+const handleLogout = () => {
+  // 1️⃣ Clear Redux state too
+  dispatch(logout());
+
+  // 2️⃣ Show logout message
+  toast.success("Logout successful!");
+
+  // 3️⃣ Redirect to login after short delay
+  setTimeout(() => {
+    navigate("/login");
+  }, 1200);
+};
+
   return (
-    <aside className="bg-white dark:bg-white-900 shadow-md w-64 min-h-screen flex flex-col justify-between p-5">
-      
+    <aside className="bg-white shadow-md w-64 min-h-screen flex flex-col justify-between p-5 relative">
+      {/* Close Button (Mobile Only) */}
+      <button
+        className="absolute top-4 right-4 text-gray-600 hover:text-purple-600 md:hidden"
+        onClick={onClose}
+      >
+        <FaTimes size={22} />
+      </button>
+
       {/* Logo */}
       <div className="mb-8 flex items-center justify-center">
         <svg
@@ -26,13 +57,28 @@ const Sidebar = () => {
           xmlns="http://www.w3.org/2000/svg"
         >
           <rect width="200" height="50" rx="10" fill="url(#grad1)" />
-          <text x="50%" y="50%" fill="white" fontSize="18" fontWeight="bold" textAnchor="middle" dominantBaseline="middle">
+          <text
+            x="50%"
+            y="50%"
+            fill="white"
+            fontSize="18"
+            fontWeight="bold"
+            textAnchor="middle"
+            dominantBaseline="middle"
+          >
             LOGO
           </text>
           <defs>
-            <linearGradient id="grad1" x1="0" y1="0" x2="200" y2="0" gradientUnits="userSpaceOnUse">
-              <stop stopColor="#7F00FF"/>
-              <stop offset="1" stopColor="#E100FF"/>
+            <linearGradient
+              id="grad1"
+              x1="0"
+              y1="0"
+              x2="200"
+              y2="0"
+              gradientUnits="userSpaceOnUse"
+            >
+              <stop stopColor="#7F00FF" />
+              <stop offset="1" stopColor="#E100FF" />
             </linearGradient>
           </defs>
         </svg>
@@ -43,7 +89,11 @@ const Sidebar = () => {
         <NavLink
           to="/dashboard"
           className={({ isActive }) =>
-            `${baseLinkClass} ${isActive ? activeLinkClass : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"}`
+            `${baseLinkClass} ${
+              isActive
+                ? activeLinkClass
+                : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"
+            }`
           }
         >
           <FaTachometerAlt className={iconClass} />
@@ -53,7 +103,11 @@ const Sidebar = () => {
         <NavLink
           to="/blogs"
           className={({ isActive }) =>
-            `${baseLinkClass} ${isActive ? activeLinkClass : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"}`
+            `${baseLinkClass} ${
+              isActive
+                ? activeLinkClass
+                : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"
+            }`
           }
         >
           <FaBlog className={iconClass} />
@@ -63,7 +117,11 @@ const Sidebar = () => {
         <NavLink
           to="/users"
           className={({ isActive }) =>
-            `${baseLinkClass} ${isActive ? activeLinkClass : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"}`
+            `${baseLinkClass} ${
+              isActive
+                ? activeLinkClass
+                : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"
+            }`
           }
         >
           <FaUsers className={iconClass} />
@@ -73,7 +131,11 @@ const Sidebar = () => {
         <NavLink
           to="/settings"
           className={({ isActive }) =>
-            `${baseLinkClass} ${isActive ? activeLinkClass : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"}`
+            `${baseLinkClass} ${
+              isActive
+                ? activeLinkClass
+                : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"
+            }`
           }
         >
           <FaCog className={iconClass} />
@@ -82,7 +144,7 @@ const Sidebar = () => {
       </nav>
 
       {/* Logout button */}
-      <button className="flex items-center py-2 px-4 rounded-lg text-sm text-brand-500 hover:text-white transition-all duration-200 hover:bg-red-600">
+      <button onClick={handleLogout} className="flex items-center py-2 px-4 rounded-lg text-sm text-brand-500 hover:text-white transition-all duration-200 hover:bg-red-600">
         <FaSignOutAlt className={iconClass} />
         Logout
       </button>
