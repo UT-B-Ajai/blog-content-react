@@ -1,6 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { registerUser } from "../Slices/Auth/authSlice";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 
 const Register = () => {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const { loading, error, success } = useSelector((state) => state.auth);
+
   const [form, setForm] = useState({
     name: "",
     email: "",
@@ -10,17 +18,38 @@ const Register = () => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    console.log("Register data:", form);
+    if (form.password !== form.confirmPassword) {
+      toast.error("Passwords do not match!");
+      return;
+    }
+
+    // Dispatch Redux action
+    dispatch(registerUser({
+      name: form.name,
+      email: form.email,
+      password: form.password,
+    }));
   };
+
+  useEffect(() => {
+    if (success) {
+       toast.success("Registration successful!");
+      setForm({ name: "", email: "", password: "", confirmPassword: "" });
+
+      setTimeout(() => {
+        navigate("/login");
+      }, 2000);
+    }
+  }, [success, navigate]);
 
   return (
     <div className="min-h-screen flex bg-purple-50">
       {/* Left side image */}
       <div className="hidden md:flex flex-1 items-center justify-center bg-purple-200">
         <img
-          src="https://images.unsplash.com/photo-1601597110908-d436bede51f0?auto=format&fit=crop&w=800&q=80"
+          src="/register.png"
           alt="Blog Illustration"
-          className="w-full h-full object-cover rounded-l-3xl"
+          className="w-full sm:w-[400px] md:w-[550px] lg:w-[450px] xl:w-[450px] h-[300px] sm:h-[400px] md:h-[300px] lg:h-[400px] xl:h-[450px] object-cover rounded-l-3xl"
         />
       </div>
 
@@ -88,12 +117,17 @@ const Register = () => {
               />
             </div>
 
+            {/* Status Messages */}
+            {loading && <p className="text-center text-purple-500">Registering...</p>}
+            {error && <p className="text-center text-red-500">{error}</p>}
+
             {/* Register Button */}
             <button
               type="submit"
+              disabled={loading}
               className="w-full bg-gradient-to-r from-purple-500 to-purple-700 text-white py-2 rounded-lg hover:from-purple-600 hover:to-purple-800 transition-all duration-200"
             >
-              Register
+              {loading ? "Please wait..." : "Register"}
             </button>
 
             {/* Login Link */}

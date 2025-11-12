@@ -1,31 +1,54 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { loginUser } from "../Slices/Auth/authSlice";
+import { toast } from "react-toastify";
 
 const Login = () => {
   const navigate = useNavigate();
-  const [form, setForm] = useState({ email: "", password: "" });
-  const [success, setSuccess] = useState(false);
+  const dispatch = useDispatch();
+   const { user,loading, success, error, token } = useSelector((state) => state.auth);  
+   const [form, setForm] = useState({ email: "", password: "" });
 
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    // Simulate login success
-    setSuccess(true);
+    if (!form.email || !form.password) {
+      toast.error("Please fill all fields");
+      return;
+    }
 
-    // Redirect after 1.5 seconds
-    setTimeout(() => {
-      navigate("/dashboard"); // Redirect to dashboard
-    }, 1500);
+    // Dispatch login API
+    dispatch(loginUser(form));
+    
   };
+
+  useEffect(() => {
+    
+    if (success && token) {
+      toast.success("Login successful!");
+         setTimeout(() => {
+      if (user.role === "admin") {
+        navigate("/dashboard");
+      } else {
+        navigate("/home");
+      }
+    }, 1500);
+    }
+
+    if (error) {
+      toast.error(error.response?.data?.message || "Invalid email or password");
+    }
+  }, [success, error, token, navigate]);
 
   return (
     <div className="min-h-screen flex bg-purple-50">
       {/* Left side image */}
       <div className="hidden md:flex flex-1 items-center justify-center bg-purple-200">
         <img
-          src="https://images.unsplash.com/photo-1601597110908-d436bede51f0?auto=format&fit=crop&w=800&q=80"
+          src="/login.png"
           alt="Blog Illustration"
-          className="w-full h-full object-cover rounded-l-3xl"
+          className="w-full h-[250px] sm:h-[200px] md:h-[300px] lg:h-[300px] xl:h-[400px] object-cover rounded-l-3xl"
         />
       </div>
 
@@ -38,7 +61,9 @@ const Login = () => {
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
-              <label className="block text-purple-700 mb-1 font-medium">Email</label>
+              <label className="block text-purple-700 mb-1 font-medium">
+                Email
+              </label>
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -50,7 +75,9 @@ const Login = () => {
             </div>
 
             <div>
-              <label className="block text-purple-700 mb-1 font-medium">Password</label>
+              <label className="block text-purple-700 mb-1 font-medium">
+                Password
+              </label>
               <input
                 type="password"
                 placeholder="Enter your password"
@@ -64,15 +91,10 @@ const Login = () => {
             <button
               type="submit"
               className="w-full bg-gradient-to-r from-purple-500 to-purple-700 text-white py-2 px-4 rounded-lg font-medium transition-all duration-200 hover:from-purple-600 hover:to-purple-800"
+              disabled={loading}
             >
-              Login
+              {loading ? "Logging in..." : "Login"}
             </button>
-
-            {success && (
-              <p className="mt-3 text-center text-purple-600 font-medium">
-                Login Successful!!
-              </p>
-            )}
 
             <p className="text-center text-purple-700 text-sm mt-3">
               Don’t have an account?{" "}

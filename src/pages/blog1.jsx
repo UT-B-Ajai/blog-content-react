@@ -1,56 +1,18 @@
 import React, { useState } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
-import { FaEdit, FaTrash, FaBars, FaSearch } from "react-icons/fa";
-import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
-
+import { FaEdit, FaTrash } from "react-icons/fa";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 const Blogs = () => {
   const [blogs, setBlogs] = useState([
-    {
-      id: 1,
-      title: "First Blog",
-      author: "Admin",
-      content: "Content for first blog",
-      cover: null,
-    },
-    {
-      id: 2,
-      title: "Second Blog",
-      author: "Admin",
-      content: "Content for second blog",
-      cover: null,
-    },
-    {
-      id: 3,
-      title: "Third Blog",
-      author: "Admin",
-      content: "Content for third blog",
-      cover: null,
-    },
-    {
-      id: 4,
-      title: "Fourth Blog",
-      author: "Admin",
-      content: "Content for fourth blog",
-      cover: null,
-    },
-    {
-      id: 5,
-      title: "Fifth Blog",
-      author: "Admin",
-      content: "Content for fifth blog",
-      cover: null,
-    },
-    {
-      id: 6,
-      title: "Sixth Blog",
-      author: "Admin",
-      content: "Content for sixth blog",
-      cover: null,
-    },
+    { id: 1, title: "First Blog", author: "Admin", content: "Content for first blog", cover: null },
+    { id: 2, title: "Second Blog", author: "Admin", content: "Content for second blog", cover: null },
+    { id: 3, title: "Third Blog", author: "Admin", content: "Content for third blog", cover: null },
+    { id: 4, title: "Fourth Blog", author: "Admin", content: "Content for fourth blog", cover: null },
+    { id: 5, title: "Fifth Blog", author: "Admin", content: "Content for fifth blog", cover: null },
+    { id: 6, title: "Sixth Blog", author: "Admin", content: "Content for sixth blog", cover: null },
   ]);
 
   const [search, setSearch] = useState("");
@@ -65,24 +27,22 @@ const Blogs = () => {
   const [deleteBlogId, setDeleteBlogId] = useState(null);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const blogsPerPage = 5;
+  const blogsPerPage = 5; // Blogs per page
 
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-
-  // Filter blogs
+  // Filter blogs based on search
   const filteredBlogs = blogs.filter(
     (blog) =>
       blog.title.toLowerCase().includes(search.toLowerCase()) ||
       blog.content.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Pagination logic
+  // Pagination
   const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
   const indexOfLastBlog = currentPage * blogsPerPage;
   const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
   const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
 
-  // Save Blog
+  // Save or Update Blog
   const handleSaveBlog = () => {
     if (!newBlogTitle.trim()) return alert("Blog title is required!");
 
@@ -90,13 +50,7 @@ const Blogs = () => {
       setBlogs(
         blogs.map((blog) =>
           blog.id === editBlogId
-            ? {
-                ...blog,
-                title: newBlogTitle,
-                content: newBlogContent,
-                cover: coverImage,
-                blog_image: blogImage,
-              }
+            ? { ...blog, title: newBlogTitle, content: newBlogContent, cover: coverImage, blog_image: blogImage }
             : blog
         )
       );
@@ -112,6 +66,7 @@ const Blogs = () => {
       setBlogs([...blogs, newBlog]);
     }
 
+    // Reset modal
     setNewBlogTitle("");
     setNewBlogContent("");
     setCoverImage(null);
@@ -120,6 +75,7 @@ const Blogs = () => {
     setIsModalOpen(false);
   };
 
+  // Edit Blog
   const handleEdit = (blog) => {
     setNewBlogTitle(blog.title);
     setNewBlogContent(blog.content || "");
@@ -129,6 +85,7 @@ const Blogs = () => {
     setIsModalOpen(true);
   };
 
+  // Delete Blog
   const openDeleteModal = (id) => {
     setDeleteBlogId(id);
     setIsDeleteModalOpen(true);
@@ -139,46 +96,33 @@ const Blogs = () => {
     setDeleteBlogId(null);
     setIsDeleteModalOpen(false);
   };
-
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   return (
     <div className="flex min-h-screen bg-gray-100">
-      {/* Sidebar */}
-      <div
-        className={`fixed md:static top-0 left-0 z-50 transition-transform duration-300
-        ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
-      >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </div>
-
-      {/* Overlay for mobile */}
+    <Sidebar onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 flex flex-col">
+        <Header />
+      {/* Overlay (for mobile) */}
       {sidebarOpen && (
         <div
           className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden"
           onClick={() => setSidebarOpen(false)}
         ></div>
       )}
-
-      {/* Main Section */}
-      <div className="flex-1 flex flex-col">
-        {/* Header with Menu Button */}
-        <div className="flex items-center justify-between p-4 bg-white shadow-sm border-b sticky top-0 z-40">
-          <button
-            className="md:hidden text-purple-600"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <FaBars size={22} />
-          </button>
-
-          <Header />
-        </div>
-
-        {/* Page Content */}
         <div className="p-6 flex-1">
-          <h2 className="text-2xl font-bold">Blogs</h2>
+          {/* Header + Search + Add */}
+            <h2 className="text-2xl font-bold">Blogs</h2>
 
           <div className="flex flex-col md:flex-row justify-end items-center mt-4 mb-6 gap-4">
+
+            <input
+              type="text"
+              placeholder="Search blogs..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="border p-2 rounded-lg w-full md:w-64 focus:outline-none focus:ring-2 focus:ring-purple-400"
+            />
+
             <button
               className="bg-gradient-to-r from-purple-400 to-purple-600 text-white py-2 px-4 rounded-lg font-medium transition-all duration-200 hover:from-purple-500 hover:to-purple-700"
               onClick={() => {
@@ -192,112 +136,81 @@ const Blogs = () => {
             >
               Add Blog
             </button>
-            {/* Search Input with Icon */}
-            <div className="relative w-full md:w-64">
-              <FaSearch className="absolute left-3 top-3 text-gray-500" />
-              <input
-                type="text"
-                placeholder="Search blogs..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="border p-2 pl-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-400"
-              />
-            </div>
           </div>
 
           {/* Blog Table */}
-          <div className="w-full bg-white shadow-md rounded-lg overflow-hidden">
-            <table className="w-full table-auto text-sm text-gray-700">
-              <thead className="bg-gradient-to-r from-purple-100 to-purple-200 text-gray-800 uppercase text-xs font-semibold">
-                <tr>
-                  <th className="py-2 px-3 text-left">#</th>
-                  <th className="py-2 px-3 text-left">Title</th>
-                  <th className="py-2 px-3 text-left hidden sm:table-cell">
-                    Content
-                  </th>
-                  <th className="py-2 px-3 text-left">Cover</th>
-                  <th className="py-2 px-3 text-left hidden sm:table-cell">
-                    Author
-                  </th>
-                  <th className="py-2 px-3 text-center">Actions</th>
+          <table className="min-w-full bg-white shadow-md rounded-lg overflow-hidden">
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="py-2 px-4 text-left">#</th>
+                <th className="py-2 px-4 text-left">Title</th>
+                <th className="py-2 px-4 text-left">Content</th>
+                <th className="py-2 px-4 text-left">Cover</th>
+                <th className="py-2 px-4 text-left">Author</th>
+                <th className="py-2 px-4 text-left">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {currentBlogs.map((blog) => (
+                <tr key={blog.id} className="border-b">
+                  <td className="py-2 px-4">{blog.id}</td>
+                  <td className="py-2 px-4">{blog.title}</td>
+                  <td className="py-2 px-4">{blog.content ? blog.content.slice(0, 50) + "..." : "-"}</td>
+                  <td className="py-2 px-4">
+                    {blog.cover ? (
+                      <img src={URL.createObjectURL(blog.cover)} alt="cover" className="w-20 h-12 object-cover rounded" />
+                    ) : (
+                      "-"
+                    )}
+                  </td>
+                  <td className="py-2 px-4">{blog.author}</td>
+                  <td className="py-2 px-4 flex space-x-2">
+                    <button
+                      className="px-2 py-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700 transition-all duration-200"
+                      onClick={() => handleEdit(blog)}
+                    >
+                      <FaEdit />
+                    </button>
+                    <button
+                      className="px-2 py-2 bg-gradient-to-r from-red-400 to-red-600 text-white rounded-lg hover:from-red-500 hover:to-red-700 transition-all duration-200"
+                      onClick={() => openDeleteModal(blog.id)}
+                    >
+                      <FaTrash />
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-
-              <tbody>
-                {currentBlogs.map((blog) => (
-                  <tr
-                    key={blog.id}
-                    className="border-b hover:bg-gray-50 transition duration-150"
-                  >
-                    <td className="py-2 px-3 font-medium text-gray-900">
-                      {blog.id}
-                    </td>
-                    <td className="py-2 px-3">{blog.title}</td>
-                    <td className="py-2 px-3 hidden sm:table-cell">
-                      {blog.content ? blog.content.slice(0, 40) + "..." : "-"}
-                    </td>
-                    <td className="py-2 px-3">
-                      {blog.cover ? (
-                        <img
-                          src={URL.createObjectURL(blog.cover)}
-                          alt="cover"
-                          className="w-14 h-10 object-cover rounded-md border"
-                        />
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="py-2 px-3 hidden sm:table-cell">
-                      {blog.author}
-                    </td>
-                    <td className="py-2 px-3 flex space-x-2 justify-center">
-                      <button
-                        className="p-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700"
-                        onClick={() => handleEdit(blog)}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="p-2 bg-gradient-to-r from-red-400 to-red-600 text-white rounded-lg hover:from-red-500 hover:to-red-700"
-                        onClick={() => openDeleteModal(blog.id)}
-                      >
-                        <FaTrash />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
 
           {/* Pagination */}
           <div className="flex justify-end mt-4 space-x-2">
             <button
-              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+              onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
             >
-              <FaAngleDoubleLeft />
+              Prev
             </button>
+
             {Array.from({ length: totalPages }, (_, i) => (
               <button
                 key={i}
-                className={`px-3 py-1 rounded ${
-                  currentPage === i + 1
-                    ? "bg-purple-500 text-white"
-                    : "bg-gray-200 hover:bg-gray-300"
+                className={`px-3 py-1 rounded transition ${
+                  currentPage === i + 1 ? "bg-purple-500 text-white" : "bg-gray-200 hover:bg-gray-300"
                 }`}
                 onClick={() => setCurrentPage(i + 1)}
               >
                 {i + 1}
               </button>
             ))}
+
             <button
-              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition"
+              onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
               disabled={currentPage === totalPages}
             >
-              <FaAngleDoubleRight />
+              Next
             </button>
           </div>
 
@@ -326,9 +239,7 @@ const Blogs = () => {
 
                 {/* Title */}
                 <div className="mb-5">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Blog Title
-                  </label>
+                  <label className="block text-gray-700 font-medium mb-2">Blog Title</label>
                   <input
                     type="text"
                     placeholder="Enter blog title"
@@ -342,97 +253,45 @@ const Blogs = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   {/* Blog Image */}
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Blog Image
-                    </label>
+                    <label className="block text-gray-700 font-medium mb-2">Blog Image</label>
                     <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-purple-400 rounded-lg cursor-pointer hover:bg-purple-50 transition-all duration-200">
                       {blogImage ? (
-                        <img
-                          src={URL.createObjectURL(blogImage)}
-                          alt="Blog Preview"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
+                        <img src={URL.createObjectURL(blogImage)} alt="Blog Preview" className="w-full h-full object-cover rounded-lg" />
                       ) : (
                         <div className="flex flex-col items-center text-purple-500">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-10 w-10 mb-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3"
-                            />
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3" />
                           </svg>
                           <p>Click or drag file to upload</p>
                         </div>
                       )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setBlogImage(e.target.files[0])}
-                      />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => setBlogImage(e.target.files[0])} />
                     </label>
                   </div>
 
                   {/* Cover Image */}
                   <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Cover Image
-                    </label>
+                    <label className="block text-gray-700 font-medium mb-2">Cover Image</label>
                     <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-purple-400 rounded-lg cursor-pointer hover:bg-purple-50 transition-all duration-200">
                       {coverImage ? (
-                        <img
-                          src={URL.createObjectURL(coverImage)}
-                          alt="Cover Preview"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
+                        <img src={URL.createObjectURL(coverImage)} alt="Cover Preview" className="w-full h-full object-cover rounded-lg" />
                       ) : (
                         <div className="flex flex-col items-center text-purple-500">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-10 w-10 mb-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3"
-                            />
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3" />
                           </svg>
                           <p>Click or drag file to upload</p>
                         </div>
                       )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setCoverImage(e.target.files[0])}
-                      />
+                      <input type="file" accept="image/*" className="hidden" onChange={(e) => setCoverImage(e.target.files[0])} />
                     </label>
                   </div>
                 </div>
 
                 {/* Blog Content */}
                 <div className="mt-6">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Blog Content
-                  </label>
-                  <ReactQuill
-                    theme="snow"
-                    value={newBlogContent}
-                    onChange={setNewBlogContent}
-                    placeholder="Write your blog content here..."
-                    className="rounded-lg bg-white"
-                  />
+                  <label className="block text-gray-700 font-medium mb-2">Blog Content</label>
+                  <ReactQuill theme="snow" value={newBlogContent} onChange={setNewBlogContent} placeholder="Write your blog content here..." className="rounded-lg bg-white" />
                 </div>
 
                 {/* Buttons */}
@@ -485,6 +344,7 @@ const Blogs = () => {
               </div>
             </div>
           )}
+
         </div>
       </div>
     </div>
