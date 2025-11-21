@@ -1,57 +1,22 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { FaEdit, FaTrash, FaBars, FaSearch } from "react-icons/fa";
 import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
-
+import { useDispatch, useSelector } from "react-redux";
+import {
+  fetchBlogs,
+  createBlog,
+  updateBlog,
+  deleteBlog,
+} from "../Slices/Blog/blogSlice";
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
 const Blogs = () => {
-  const [blogs, setBlogs] = useState([
-    {
-      id: 1,
-      title: "First Blog",
-      author: "Admin",
-      content: "Content for first blog",
-      cover: null,
-    },
-    {
-      id: 2,
-      title: "Second Blog",
-      author: "Admin",
-      content: "Content for second blog",
-      cover: null,
-    },
-    {
-      id: 3,
-      title: "Third Blog",
-      author: "Admin",
-      content: "Content for third blog",
-      cover: null,
-    },
-    {
-      id: 4,
-      title: "Fourth Blog",
-      author: "Admin",
-      content: "Content for fourth blog",
-      cover: null,
-    },
-    {
-      id: 5,
-      title: "Fifth Blog",
-      author: "Admin",
-      content: "Content for fifth blog",
-      cover: null,
-    },
-    {
-      id: 6,
-      title: "Sixth Blog",
-      author: "Admin",
-      content: "Content for sixth blog",
-      cover: null,
-    },
-  ]);
+  const dispatch = useDispatch();
+  const { blogs, loading, pagination } = useSelector((state) => state.blogs);
+  console.log(pagination, "pageinationdata");
 
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -59,98 +24,80 @@ const Blogs = () => {
   const [newBlogContent, setNewBlogContent] = useState("");
   const [coverImage, setCoverImage] = useState(null);
   const [blogImage, setBlogImage] = useState(null);
-
   const [editBlogId, setEditBlogId] = useState(null);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [deleteBlogId, setDeleteBlogId] = useState(null);
-
-  const [currentPage, setCurrentPage] = useState(1);
-  const blogsPerPage = 5;
-
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  // Filter blogs
-  const filteredBlogs = blogs.filter(
+  // Local pagination controls
+  const [currentPage, setCurrentPage] = useState(1);
+  const [perPage] = useState(10);
+  const totalPages = pagination?.total_pages || 1;
+  // 🟣 Fetch all blogs
+  useEffect(() => {
+    dispatch(fetchBlogs({ page: currentPage, perPage, search }));
+  }, [dispatch, currentPage, perPage, search]);
+
+  // 🔍 Search filter
+  const filteredBlogs = blogs?.filter(
     (blog) =>
       blog.title.toLowerCase().includes(search.toLowerCase()) ||
       blog.content.toLowerCase().includes(search.toLowerCase())
   );
 
-  // Pagination logic
-  const totalPages = Math.ceil(filteredBlogs.length / blogsPerPage);
-  const indexOfLastBlog = currentPage * blogsPerPage;
-  const indexOfFirstBlog = indexOfLastBlog - blogsPerPage;
-  const currentBlogs = filteredBlogs.slice(indexOfFirstBlog, indexOfLastBlog);
-
-  // Save Blog
+  // ✏️ Add or Update Blog
   const handleSaveBlog = () => {
     if (!newBlogTitle.trim()) return alert("Blog title is required!");
 
-    if (editBlogId !== null) {
-      setBlogs(
-        blogs.map((blog) =>
-          blog.id === editBlogId
-            ? {
-                ...blog,
-                title: newBlogTitle,
-                content: newBlogContent,
-                cover: coverImage,
-                blog_image: blogImage,
-              }
-            : blog
-        )
-      );
+    const formData = new FormData();
+    formData.append("title", newBlogTitle);
+    formData.append("content", newBlogContent);
+    if (coverImage) formData.append("cover_image", coverImage);
+    if (blogImage) formData.append("image", blogImage);
+
+    if (editBlogId) {
+      dispatch(updateBlog({ id: editBlogId, formData }));
     } else {
-      const newBlog = {
-        id: blogs.length + 1,
-        title: newBlogTitle,
-        content: newBlogContent,
-        cover: coverImage,
-        blog_image: blogImage,
-        author: "Admin",
-      };
-      setBlogs([...blogs, newBlog]);
+      dispatch(createBlog(formData));
     }
 
+    setIsModalOpen(false);
+    resetForm();
+  };
+
+  // ♻️ Reset form
+  const resetForm = () => {
     setNewBlogTitle("");
     setNewBlogContent("");
     setCoverImage(null);
     setBlogImage(null);
     setEditBlogId(null);
-    setIsModalOpen(false);
   };
 
+  // 🧾 Edit
   const handleEdit = (blog) => {
+    setEditBlogId(blog._id);
     setNewBlogTitle(blog.title);
-    setNewBlogContent(blog.content || "");
-    setCoverImage(blog.cover || null);
-    setBlogImage(blog.blog_image || null);
-    setEditBlogId(blog.id);
+    setNewBlogContent(blog.content);
     setIsModalOpen(true);
   };
 
+  // 🗑️ Delete
   const openDeleteModal = (id) => {
     setDeleteBlogId(id);
     setIsDeleteModalOpen(true);
   };
 
   const handleDelete = () => {
-    setBlogs(blogs.filter((blog) => blog.id !== deleteBlogId));
-    setDeleteBlogId(null);
+    dispatch(deleteBlog(deleteBlogId));
     setIsDeleteModalOpen(false);
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
+    <div className="flex h-screen overflow-hidden bg-gray-100">
       {/* Sidebar */}
-      <div
-        className={`fixed md:static top-0 left-0 z-50 transition-transform duration-300
-        ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
-      >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </div>
+
+      <Sidebar />
 
       {/* Overlay for mobile */}
       {sidebarOpen && (
@@ -161,330 +108,141 @@ const Blogs = () => {
       )}
 
       {/* Main Section */}
-      <div className="flex-1 flex flex-col">
-        {/* Header with Menu Button */}
+      <div className="flex-1 flex flex-col ml-0 md:ml-64 h-screen overflow-hidden">
+        {/* Header */}
         <div className="flex items-center justify-between p-4 bg-white shadow-sm border-b sticky top-0 z-40">
-          <button
-            className="md:hidden text-purple-600"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <FaBars size={22} />
-          </button>
-
           <Header />
         </div>
 
-        {/* Page Content */}
-        <div className="p-6 flex-1">
+        {/* Scrollable Page Content */}
+        <div className="p-6 flex-1 ">
           <h2 className="text-2xl font-bold">Blogs</h2>
 
-          <div className="flex flex-col md:flex-row justify-end items-center mt-4 mb-6 gap-4">
+          {/* Toolbar (Add + Search) */}
+          <div className="flex flex-col md:flex-row justify-end items-center mt-0 mb-4 gap-4">
             <button
-              className="bg-gradient-to-r from-purple-400 to-purple-600 text-white py-2 px-4 rounded-lg font-medium transition-all duration-200 hover:from-purple-500 hover:to-purple-700"
+              className="bg-gradient-to-r from-purple-400 to-purple-600 text-white py-2 px-4 rounded-lg font-medium hover:from-purple-500 hover:to-purple-700"
               onClick={() => {
                 setIsModalOpen(true);
-                setEditBlogId(null);
-                setNewBlogTitle("");
-                setNewBlogContent("");
-                setCoverImage(null);
-                setBlogImage(null);
+                resetForm();
               }}
             >
               Add Blog
             </button>
-            {/* Search Input with Icon */}
+
             <div className="relative w-full md:w-64">
-              <FaSearch className="absolute left-3 top-3 text-gray-500" />
+              <FaSearch className="absolute left-3 top-3 " />
               <input
                 type="text"
                 placeholder="Search blogs..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="border p-2 pl-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-400"
+                className="border p-2 pl-10 rounded-lg w-full focus:ring-2 focus:ring-purple-400"
               />
             </div>
           </div>
 
-          {/* Blog Table */}
-          <div className="w-full bg-white shadow-md rounded-lg overflow-hidden">
-            <table className="w-full table-auto text-sm text-gray-700">
-              <thead className="bg-gradient-to-r from-purple-100 to-purple-200 text-gray-800 uppercase text-xs font-semibold">
-                <tr>
-                  <th className="py-2 px-3 text-left">#</th>
-                  <th className="py-2 px-3 text-left">Title</th>
-                  <th className="py-2 px-3 text-left hidden sm:table-cell">
-                    Content
-                  </th>
-                  <th className="py-2 px-3 text-left">Cover</th>
-                  <th className="py-2 px-3 text-left hidden sm:table-cell">
-                    Author
-                  </th>
-                  <th className="py-2 px-3 text-center">Actions</th>
-                </tr>
-              </thead>
-
-              <tbody>
-                {currentBlogs.map((blog) => (
-                  <tr
-                    key={blog.id}
-                    className="border-b hover:bg-gray-50 transition duration-150"
-                  >
-                    <td className="py-2 px-3 font-medium text-gray-900">
-                      {blog.id}
-                    </td>
-                    <td className="py-2 px-3">{blog.title}</td>
-                    <td className="py-2 px-3 hidden sm:table-cell">
-                      {blog.content ? blog.content.slice(0, 40) + "..." : "-"}
-                    </td>
-                    <td className="py-2 px-3">
-                      {blog.cover ? (
-                        <img
-                          src={URL.createObjectURL(blog.cover)}
-                          alt="cover"
-                          className="w-14 h-10 object-cover rounded-md border"
-                        />
-                      ) : (
-                        "-"
-                      )}
-                    </td>
-                    <td className="py-2 px-3 hidden sm:table-cell">
-                      {blog.author}
-                    </td>
-                    <td className="py-2 px-3 flex space-x-2 justify-center">
-                      <button
-                        className="p-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700"
-                        onClick={() => handleEdit(blog)}
-                      >
-                        <FaEdit />
-                      </button>
-                      <button
-                        className="p-2 bg-gradient-to-r from-red-400 to-red-600 text-white rounded-lg hover:from-red-500 hover:to-red-700"
-                        onClick={() => openDeleteModal(blog.id)}
-                      >
-                        <FaTrash />
-                      </button>
-                    </td>
+          {/* Blog Table Section */}
+          <div className="bg-white shadow-md rounded-lg">
+            <div className="overflow-y-auto max-h-[60vh] scrollbar-hide">
+              <table className="w-full table-auto text-sm">
+                <thead className="sticky top-0 bg-gradient-to-r from-purple-100 to-purple-200 text-gray-800 uppercase text-xs font-semibold z-10">
+                  <tr>
+                    <th className="py-2 px-3 text-left w-[5%]">#</th>
+                    <th className="py-2 px-3 text-left w-[25%]">Title</th>
+                    <th className="py-2 px-3 text-left w-[40%]">Content</th>
+                    <th className="py-2 px-3 text-left w-[15%]">Cover</th>
+                    <th className="py-2 px-3 text-center w-[15%]">Actions</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
 
-          {/* Pagination */}
-          <div className="flex justify-end mt-4 space-x-2">
-            <button
-              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-              disabled={currentPage === 1}
-            >
-              <FaAngleDoubleLeft />
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => (
-              <button
-                key={i}
-                className={`px-3 py-1 rounded ${
-                  currentPage === i + 1
-                    ? "bg-purple-500 text-white"
-                    : "bg-gray-200 hover:bg-gray-300"
-                }`}
-                onClick={() => setCurrentPage(i + 1)}
-              >
-                {i + 1}
-              </button>
-            ))}
-            <button
-              className="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"
-              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-              disabled={currentPage === totalPages}
-            >
-              <FaAngleDoubleRight />
-            </button>
-          </div>
-
-          {/* Add/Edit Blog Modal */}
-          {isModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50 transition-all duration-300">
-              <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 relative animate-fadeIn max-h-[90vh] overflow-y-auto">
-                {/* Close Button */}
-                <button
-                  className="absolute top-4 right-4 text-gray-500 hover:text-gray-800 transition"
-                  onClick={() => {
-                    setIsModalOpen(false);
-                    setEditBlogId(null);
-                    setNewBlogTitle("");
-                    setNewBlogContent("");
-                    setCoverImage(null);
-                    setBlogImage(null);
-                  }}
-                >
-                  ✕
-                </button>
-
-                <h3 className="text-2xl font-bold mb-6 text-gray-800 border-b pb-2">
-                  {editBlogId !== null ? "Edit Blog" : "Add New Blog"}
-                </h3>
-
-                {/* Title */}
-                <div className="mb-5">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Blog Title
-                  </label>
-                  <input
-                    type="text"
-                    placeholder="Enter blog title"
-                    value={newBlogTitle}
-                    onChange={(e) => setNewBlogTitle(e.target.value)}
-                    className="w-full border border-gray-300 rounded-lg p-3 focus:outline-none focus:ring-2 focus:ring-purple-400"
-                  />
-                </div>
-
-                {/* Blog + Cover Image side by side */}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  {/* Blog Image */}
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Blog Image
-                    </label>
-                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-purple-400 rounded-lg cursor-pointer hover:bg-purple-50 transition-all duration-200">
-                      {blogImage ? (
-                        <img
-                          src={URL.createObjectURL(blogImage)}
-                          alt="Blog Preview"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center text-purple-500">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-10 w-10 mb-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3"
+                <tbody>
+                  {loading ? (
+                    <tr>
+                      <td colSpan="5" className="text-center p-4">
+                        Loading...
+                      </td>
+                    </tr>
+                  ) : (
+                    blogs.map((blog) => (
+                      <tr className="border-b hover:bg-gray-50" key={blog._id}>
+                        <td className="py-2 px-3">{blog.s_no}</td>
+                        <td className="py-2 px-3">{blog.title}</td>
+                        <td className="py-2 px-3 ">
+                          {blog.content?.slice(0, 40)}...
+                        </td>
+                        <td className="py-2 px-3">
+                          {blog.cover_image ? (
+                            <img
+                              src={
+                                blog.cover_image.startsWith("http")
+                                  ? blog.cover_image
+                                  : `http://localhost:5000/blog/${blog.cover_image}`
+                              }
+                              alt="cover"
+                              className="w-14 h-10 object-cover rounded-md border"
                             />
-                          </svg>
-                          <p>Click or drag file to upload</p>
-                        </div>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setBlogImage(e.target.files[0])}
-                      />
-                    </label>
-                  </div>
-
-                  {/* Cover Image */}
-                  <div>
-                    <label className="block text-gray-700 font-medium mb-2">
-                      Cover Image
-                    </label>
-                    <label className="flex flex-col items-center justify-center w-full h-40 border-2 border-dashed border-purple-400 rounded-lg cursor-pointer hover:bg-purple-50 transition-all duration-200">
-                      {coverImage ? (
-                        <img
-                          src={URL.createObjectURL(coverImage)}
-                          alt="Cover Preview"
-                          className="w-full h-full object-cover rounded-lg"
-                        />
-                      ) : (
-                        <div className="flex flex-col items-center text-purple-500">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="h-10 w-10 mb-2"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                        <td className="py-2 px-3 flex space-x-2 justify-center">
+                          <button
+                            className="p-2 bg-purple-500 text-white rounded-lg"
+                            onClick={() => handleEdit(blog)}
                           >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M4 16v1a2 2 0 002 2h12a2 2 0 002-2v-1M12 12v6m0 0l-3-3m3 3l3-3"
-                            />
-                          </svg>
-                          <p>Click or drag file to upload</p>
-                        </div>
-                      )}
-                      <input
-                        type="file"
-                        accept="image/*"
-                        className="hidden"
-                        onChange={(e) => setCoverImage(e.target.files[0])}
-                      />
-                    </label>
-                  </div>
-                </div>
-
-                {/* Blog Content */}
-                <div className="mt-6">
-                  <label className="block text-gray-700 font-medium mb-2">
-                    Blog Content
-                  </label>
-                  <ReactQuill
-                    theme="snow"
-                    value={newBlogContent}
-                    onChange={setNewBlogContent}
-                    placeholder="Write your blog content here..."
-                    className="rounded-lg bg-white"
-                  />
-                </div>
-
-                {/* Buttons */}
-                <div className="flex justify-end gap-4 mt-8">
-                  <button
-                    className="px-6 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200"
-                    onClick={() => {
-                      setIsModalOpen(false);
-                      setEditBlogId(null);
-                      setNewBlogTitle("");
-                      setNewBlogContent("");
-                      setCoverImage(null);
-                      setBlogImage(null);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    className="px-6 py-2 bg-gradient-to-r from-purple-500 to-purple-700 text-white rounded-lg hover:from-purple-600 hover:to-purple-800 shadow-md transition-all duration-200"
-                    onClick={handleSaveBlog}
-                  >
-                    {editBlogId !== null ? "Update Blog" : "Add Blog"}
-                  </button>
-                </div>
-              </div>
+                            <FaEdit />
+                          </button>
+                          <button
+                            className="p-2 bg-red-500 text-white rounded-lg"
+                            onClick={() => openDeleteModal(blog._id)}
+                          >
+                            <FaTrash />
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
             </div>
-          )}
+          </div>
+        </div>
+        {/* Pagination Section */}
+        <div className="bottom-0 py-2 flex justify-end px-5 space-x-2">
+          <button
+            className={`px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition ${
+              currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            <FaAngleDoubleLeft />
+          </button>
 
-          {/* Delete Confirmation Modal */}
-          {isDeleteModalOpen && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-              <div className="bg-white p-6 rounded-lg w-80 text-center">
-                <h3 className="text-lg font-semibold mb-4 text-gray-800">
-                  Are you sure you want to delete this blog?
-                </h3>
-                <div className="flex justify-center gap-4">
-                  <button
-                    className="px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700 transition-all duration-200"
-                    onClick={handleDelete}
-                  >
-                    Yes, Delete
-                  </button>
-                  <button
-                    className="px-4 py-2 bg-gray-200 rounded-lg hover:bg-gray-300 transition-all duration-200"
-                    onClick={() => setIsDeleteModalOpen(false)}
-                  >
-                    Cancel
-                  </button>
-                </div>
-              </div>
-            </div>
-          )}
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i}
+              className={`px-3 py-1 rounded transition ${
+                currentPage === i + 1
+                  ? "bg-purple-500 text-white"
+                  : "bg-gray-200 hover:bg-gray-300"
+              }`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            className={`px-3 py-1 bg-gray-200 rounded hover:bg-gray-300 transition ${
+              currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""
+            }`}
+            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+            disabled={currentPage === totalPages}
+          >
+            <FaAngleDoubleRight />
+          </button>
         </div>
       </div>
     </div>

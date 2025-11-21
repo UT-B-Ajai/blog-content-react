@@ -7,7 +7,9 @@ import { toast } from "react-toastify";
 const Login = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-   const { user,loading, success, error, token } = useSelector((state) => state.auth);  
+    const { user,loading, success, error, token } = useSelector((state) => state.auth);  
+  console.log(useSelector((state) => state.auth),"userstate");
+  
    const [form, setForm] = useState({ email: "", password: "" });
 
   const handleSubmit = (e) => {
@@ -28,11 +30,9 @@ const Login = () => {
     if (success && token) {
       toast.success("Login successful!");
          setTimeout(() => {
-      if (user.role === "admin") {
-        navigate("/dashboard");
-      } else {
+    
         navigate("/home");
-      }
+    
     }, 1500);
     }
 

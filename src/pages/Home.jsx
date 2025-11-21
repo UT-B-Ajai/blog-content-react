@@ -1,25 +1,29 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { fetchBlogs,  addToWishlist, removeFromWishlist, } from "../Slices/Blog/blogSlice";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import PaginationModal from "../components/Pagination";
+import { FaHeart, FaRegHeart } from "react-icons/fa";
 
 const Home = () => {
+  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [wishlist, setWishlist] = useState([]);
 
-  const allBlogs = Array.from({ length: 10 }, (_, i) => ({
-    id: i + 1,
-    title: `Blog Post ${i + 1}`,
-    coverImage: `https://picsum.photos/800/400?random=${i + 1}`,
-    snippet:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent ac magna justo. Donec viverra purus vel purus varius...",
-    author: "Ajai M",
-    createdAt: "2025-10-10",
-  }));
+const toggleWishlist = (id) => {
+  setWishlist((prev) =>
+    prev.includes(id) ? prev.filter((item) => item !== id) : [...prev, id]
+  );
+};
+  const { blogs, pagination, loading } = useSelector((state) => state.blogs);
 
   const [currentPage, setCurrentPage] = useState(1);
-  const blogsPerPage = 4;
-  const totalPages = Math.ceil(allBlogs.length / blogsPerPage);
-  const startIndex = (currentPage - 1) * blogsPerPage;
-  const visibleBlogs = allBlogs.slice(startIndex, startIndex + blogsPerPage);
+  const perPage = 12; // blogs per page
+
+  useEffect(() => {
+    dispatch(fetchBlogs({ page: currentPage, perPage }));
+  }, [dispatch, currentPage]);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -27,73 +31,92 @@ const Home = () => {
 
       <div className="py-12 px-6">
         <h1 className="text-4xl font-bold text-center mb-10 text-purple-600">
-          Welcome to Our Blog
+          Blog Feed
         </h1>
 
-        {/* Blog Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {visibleBlogs.map((blog) => (
-            <div
-              key={blog.id}
-              className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden"
-            >
-              <img
-                src={blog.coverImage}
-                alt={blog.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-5">
-                <h2 className="text-xl font-semibold text-purple-600 mb-2">
-                  {blog.title}
-                </h2>
-                <p className="text-gray-600 text-sm mb-4">{blog.snippet}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                  <span>👤 {blog.author}</span>
-                  <span>📅 {new Date(blog.createdAt).toLocaleDateString()}</span>
-                </div>
-                <button
-                  onClick={() => navigate(`/blog/${blog.id}`)}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700 transition-all duration-200"
+        {/* Loading State */}
+        {loading ? (
+          <p className="text-center text-lg text-gray-600">Loading blogs...</p>
+        ) : (
+          <>
+            {/* Blog Cards */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+              {blogs?.map((blog) => (
+                <div
+                  key={blog._id}
+                  className="relative bg-white rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 overflow-hidden hover:scale-110"
                 >
-                  Read More
-                </button>
+                  {/* Image */}
+                  <img
+                    src={`http://localhost:5000/blog/${blog.cover_image}`}
+                    alt={blog.title}
+                    className="w-full h-48 object-cover"
+                  />
+
+                  {/* Content */}
+                  <div className="p-5">
+                    <h2 className="text-xl font-semibold text-purple-600 mb-2">
+                      {blog.title}
+                    </h2>
+
+                    <div
+                      className="text-gray-600 text-sm mb-4"
+                      dangerouslySetInnerHTML={{
+                        __html: blog.content?.slice(0, 120),
+                      }}
+                    ></div>
+
+                <div className="flex items-center justify-between text-sm mb-4">
+              <span className="text-gray-600 flex items-center gap-1">
+                👤 {blog.author || "Unknown"}
+              </span>
+
+              <div className="flex items-center gap-4">
+                <span className="text-gray-500 flex items-center gap-1">
+                  📅 {new Date(blog.created_at).toLocaleDateString()}
+                </span>
+
+                {/* ❤️ Stylish Wishlist Button */}
+         <button
+            onClick={() =>
+              blog.is_wishlist === 1
+                ? dispatch(removeFromWishlist(blog._id))
+                : dispatch(addToWishlist(blog._id))
+            }
+            className="transition transform hover:scale-125"
+          >
+            {blog.is_wishlist === 1 ? (
+              <FaHeart className="text-red-600 drop-shadow-md text-xl transition-all duration-300" />
+            ) : (
+              <FaRegHeart className="text-purple-500 hover:text-purple-600 drop-shadow-sm text-xl transition-all duration-300" />
+            )}
+          </button>
+
               </div>
             </div>
-          ))}
-        </div>
 
-        {/* Pagination */}
-        <div className="flex justify-center mt-10 space-x-2">
-          <button
-            className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-          >
-            Prev
-          </button>
 
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? "bg-gradient-to-r from-purple-400 to-purple-600 text-white"
-                  : "bg-white border text-gray-700 hover:bg-gray-100"
-              }`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+                    <button
+                      onClick={() => navigate(`/blog/${blog._id}`)}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700 transition-all duration-200"
+                    >
+                      Read More
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
 
-          <button
-            className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-          >
-            Next
-          </button>
-        </div>
+            {/* Pagination */}
+            <div className="mt-10">
+              <PaginationModal
+                currentPage={currentPage}
+                totalPages={pagination?.total_pages || 1}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

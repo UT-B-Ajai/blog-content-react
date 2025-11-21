@@ -7,17 +7,18 @@ import {
   FaCog,
   FaSignOutAlt,
   FaTimes,
+  FaHome 
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import {logout} from "../Slices/Auth/authSlice";
+import { useDispatch, useSelector } from "react-redux";
+import { logout } from "../Slices/Auth/authSlice";
 import { toast } from "react-toastify";
-
+import { closeMenu } from "../Slices/menu/MenuSlice";
 
 const Sidebar = ({ onClose }) => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-
+  const { isOpen } = useSelector((state) => state.menu);
   const baseLinkClass =
     "flex items-center py-2 px-4 rounded-lg transition-all duration-200 text-sm text-brand-500 hover:text-white";
   const activeLinkClass =
@@ -25,25 +26,33 @@ const Sidebar = ({ onClose }) => {
 
   const iconClass = "mr-3";
 
-const handleLogout = () => {
-  // 1️⃣ Clear Redux state too
-  dispatch(logout());
+  const handleLogout = () => {
+    // 1️⃣ Clear Redux state too
+    dispatch(logout());
 
-  // 2️⃣ Show logout message
-  toast.success("Logout successful!");
+    // 2️⃣ Show logout message
+    toast.success("Logout successful!");
 
-  // 3️⃣ Redirect to login after short delay
-  setTimeout(() => {
-    navigate("/login");
-  }, 1200);
-};
+    // 3️⃣ Redirect to login after short delay
+    setTimeout(() => {
+      navigate("/login");
+    }, 1200);
+  };
+  const isMobile = window.innerWidth < 768;
 
   return (
-    <aside className="bg-white shadow-md w-64 min-h-screen flex flex-col justify-between p-5 relative">
+    <aside
+      className={`
+    fixed top-0 left-0 h-screen w-64 bg-white shadow-md p-5
+    flex flex-col justify-between
+    transform transition-transform duration-300 ease-in-out z-[100] lg:translate-x-0 md:translate-x-0
+    ${isOpen ? "translate-x-0" : "-translate-x-full"}
+  `}
+    >
       {/* Close Button (Mobile Only) */}
       <button
         className="absolute top-4 right-4 text-gray-600 hover:text-purple-600 md:hidden"
-        onClick={onClose}
+        onClick={() => dispatch(closeMenu())}
       >
         <FaTimes size={22} />
       </button>
@@ -141,10 +150,28 @@ const handleLogout = () => {
           <FaCog className={iconClass} />
           Settings
         </NavLink>
+
+        <NavLink
+          to="/home"
+          className={({ isActive }) =>
+            `${baseLinkClass} ${
+              isActive
+                ? activeLinkClass
+                : "hover:bg-purple-400 hover:from-purple-400 hover:to-purple-600"
+            }`
+          }
+        >
+          <FaHome className={iconClass} />
+          Home
+        </NavLink>
+
       </nav>
 
       {/* Logout button */}
-      <button onClick={handleLogout} className="flex items-center py-2 px-4 rounded-lg text-sm text-brand-500 hover:text-white transition-all duration-200 hover:bg-red-600">
+      <button
+        onClick={handleLogout}
+        className="flex items-center py-2 px-4 rounded-lg text-sm text-brand-500 hover:text-white transition-all duration-200 hover:bg-red-600"
+      >
         <FaSignOutAlt className={iconClass} />
         Logout
       </button>
