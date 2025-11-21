@@ -10,6 +10,7 @@ const Register = lazy(() => import("./pages/Register"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Blogs = lazy(() => import("./pages/Blogs"));
 const Home = lazy(() => import("./pages/Home"));
+const OurBlog = lazy(() => import("./pages/OurBlog"));
 const BlogDetails = lazy(() => import("./pages/BlogDetails"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Users = lazy(() => import("./pages/Users"));
@@ -31,6 +32,7 @@ function App() {
           <Route path="/blogs" element={<Blogs />} />
           <Route path="/users" element={<Users />} />
           <Route path="/home" element={<Home />} />
+          <Route path="/ourblog" element={<OurBlog />} />
           <Route path="/blog/:id" element={<BlogDetails />} />
           <Route path="/contact" element={<Contact />} />
           <Route path="*" element={<Login />} />

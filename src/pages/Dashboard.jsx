@@ -1,23 +1,25 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import Sidebar from "../components/Sidebar";
 import Header from "../components/Header";
 import { FaBars, FaEdit, FaTrash } from "react-icons/fa";
+import { fetchdashboard } from "../Slices/Dashboard/dashboardSlice";
+import { useDispatch, useSelector } from "react-redux";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [search, setSearch] = useState("");
+  const dispatch = useDispatch();
+
+  const { data, loading, error } = useSelector((state) => state.dashboard);
+
+  useEffect(() => {
+    dispatch(fetchdashboard());
+  }, []);
 
   return (
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
-      <div
-        className={`fixed md:static top-0 left-0 z-50 transition-transform duration-300
-        ${
-          sidebarOpen ? "translate-x-0" : "-translate-x-full"
-        } md:translate-x-0`}
-      >
-        <Sidebar onClose={() => setSidebarOpen(false)} />
-      </div>
+      <Sidebar />
 
       {/* Overlay (for mobile) */}
       {sidebarOpen && (
@@ -28,17 +30,9 @@ const Dashboard = () => {
       )}
 
       {/* Main Section */}
-      <div className="flex-1 flex flex-col">
+      <div className="flex-1 flex flex-col ml-0 md:ml-64 h-screen overflow-hidden">
         {/* Header with mobile menu */}
         <div className="flex items-center justify-between p-4 bg-white shadow-sm border-b sticky top-0 z-40">
-          {/* Mobile Menu Button */}
-          <button
-            className="md:hidden text-purple-600"
-            onClick={() => setSidebarOpen(true)}
-          >
-            <FaBars size={22} />
-          </button>
-
           {/* Page Header */}
           <Header />
         </div>
@@ -51,15 +45,15 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col items-center">
               <h3 className="text-gray-500 text-sm">Total Blogs</h3>
-              <span className="text-3xl font-bold">20</span>
+              <span className="text-3xl font-bold">{data.total_blogs}</span>
             </div>
             <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col items-center">
               <h3 className="text-gray-500 text-sm">Total Authors</h3>
-              <span className="text-3xl font-bold">1</span>
+              <span className="text-3xl font-bold">{data.total_users}</span>
             </div>
             <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col items-center">
-              <h3 className="text-gray-500 text-sm">Recent Activity</h3>
-              <span className="text-3xl font-bold">20</span>
+              <h3 className="text-gray-500 text-sm">Total Wishlist</h3>
+              <span className="text-3xl font-bold">Coming Soon</span>
             </div>
           </div>
         </main>
