@@ -1,102 +1,150 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import Navbar from "../components/Navbar";
+  import React, { useEffect, useState } from "react";
+  import { useDispatch, useSelector } from "react-redux";
+  import {
+    fetchOurBlogs,
+    addToWishlist,
+    removeFromWishlist,
+  } from "../Slices/Blog/blogSlice";
+  import { useNavigate } from "react-router-dom";
+  import Navbar from "../components/Navbar";
+  import Footer from "../components/Footer";
+  import { FaHeart, FaRegHeart } from "react-icons/fa";
+  import PaginationModal from "../components/Pagination";
 
-const OurBlog = () => {
-  const navigate = useNavigate();
+  const OurBlog = () => {
+    const dispatch = useDispatch();
+    const navigate = useNavigate();
 
-  const allBlogs = Array.from({ length: 10 }, (_, i) => ({
-    id: i + 1,
-    title: `Blog Post ${i + 1}`,
-    coverImage: `https://picsum.photos/800/400?random=${i + 1}`,
-    snippet:
-      "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Praesent ac magna justo. Donec viverra purus vel purus varius...",
-    author: "Ajai M",
-    createdAt: "2025-10-10",
-  }));
+    const { blogs, pagination, loading } = useSelector((state) => state.blogs);
 
-  const [currentPage, setCurrentPage] = useState(1);
-  const blogsPerPage = 4;
-  const totalPages = Math.ceil(allBlogs.length / blogsPerPage);
-  const startIndex = (currentPage - 1) * blogsPerPage;
-  const visibleBlogs = allBlogs.slice(startIndex, startIndex + blogsPerPage);
+    const [currentPage, setCurrentPage] = useState(1);
+    const perPage = 12;
 
-  return (
-    <div className="min-h-screen bg-gray-50">
-      <Navbar />
+    useEffect(() => {
+      dispatch(fetchOurBlogs({ page: currentPage, perPage }));
+    }, [dispatch, currentPage]);
 
-      <div className="py-12 px-6">
-        <h1 className="text-4xl font-bold text-center mb-10 text-purple-600">
-          Our Blog
-        </h1>
+return (
+  <div className="min-h-screen bg-gray-50 flex flex-col">
+    <Navbar />
 
-        {/* Blog Cards */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-6xl mx-auto">
-          {visibleBlogs.map((blog) => (
+    {/* PAGE CONTENT */}
+    <div className="flex-1 py-12 px-6">
+      <h1 className="text-4xl font-bold text-center mb-10 text-purple-600">
+        My Blog
+      </h1>
+
+      {/* Loading or Content */}
+      {loading ? (
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto animate-pulse">
+          {[...Array(6)].map((_, i) => (
             <div
-              key={blog.id}
-              className="bg-white rounded-2xl shadow-md hover:shadow-lg transition-all duration-300 overflow-hidden"
+              key={i}
+              className="bg-white rounded-3xl shadow-lg overflow-hidden border-2 border-transparent"
             >
-              <img
-                src={blog.coverImage}
-                alt={blog.title}
-                className="w-full h-48 object-cover"
-              />
-              <div className="p-5">
-                <h2 className="text-xl font-semibold text-purple-600 mb-2">
-                  {blog.title}
-                </h2>
-                <p className="text-gray-600 text-sm mb-4">{blog.snippet}</p>
-                <div className="flex items-center justify-between text-sm text-gray-500 mb-3">
-                  <span>👤 {blog.author}</span>
-                  <span>📅 {new Date(blog.createdAt).toLocaleDateString()}</span>
+              <div className="h-48 bg-gray-200 rounded-lg"></div>
+              <div className="p-6 space-y-4">
+                <div className="h-6 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-4 bg-gray-200 rounded w-full"></div>
+                <div className="h-4 bg-gray-200 rounded w-5/6"></div>
+                <div className="flex justify-between items-center mt-4">
+                  <div className="h-4 bg-gray-300 rounded w-1/3"></div>
+                  <div className="h-4 bg-gray-300 rounded w-1/4"></div>
                 </div>
-                <button
-                  onClick={() => navigate(`/blog/${blog.id}`)}
-                  className="w-full px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700 transition-all duration-200"
-                >
-                  Read More
-                </button>
+                <div className="h-10 bg-gray-300 rounded-lg mt-4 w-full"></div>
               </div>
             </div>
           ))}
         </div>
+      ) : (
+        <>
+          {/* Blog Cards */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto mb-0">
+            {blogs?.length === 0 ? (
+              <p className="text-center text-2xl text-gray-500 col-span-3 py-16">
+                🚫 No Blogs Found
+              </p>
+            ) : (
+              blogs.map((blog) => (
+                <div
+                  key={blog._id}
+                  className="relative bg-white rounded-3xl shadow-lg hover:shadow-2xl transition-all duration-300 overflow-hidden transform hover:-translate-y-1 hover:scale-105 border-2 border-transparent hover:border-purple-400"
+                >
+                  <img
+                    src={
+                      blog?.image
+                        ? `http://localhost:5000/blog/${blog.image}`
+                        : "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?w=800"
+                    }
+                    alt={blog.title || "Default Blog Image"}
+                    className="w-full h-48 object-cover rounded-lg"
+                  />
 
-        {/* Pagination */}
-        <div className="flex justify-center mt-10 space-x-2">
-          <button
-            className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage === 1}
-            onClick={() => setCurrentPage(currentPage - 1)}
-          >
-            Prev
-          </button>
+                  <div className="p-6">
+                    <h2 className="text-xl font-bold text-purple-600 mb-2">
+                      {blog.title}
+                    </h2>
 
-          {[...Array(totalPages)].map((_, i) => (
-            <button
-              key={i}
-              className={`px-3 py-1 rounded ${
-                currentPage === i + 1
-                  ? "bg-gradient-to-r from-purple-400 to-purple-600 text-white"
-                  : "bg-white border text-gray-700 hover:bg-gray-100"
-              }`}
-              onClick={() => setCurrentPage(i + 1)}
-            >
-              {i + 1}
-            </button>
-          ))}
+                  <div className="text-gray-600 text-sm mb-4">
+                    {blog.content?.replace(/<[^>]+>/g, "").slice(0, 120)}...
+                  </div>
 
-          <button
-            className="px-3 py-1 border rounded disabled:opacity-50"
-            disabled={currentPage === totalPages}
-            onClick={() => setCurrentPage(currentPage + 1)}
-          >
-            Next
-          </button>
-        </div>
-      </div>
+                    <div className="flex items-center justify-between text-sm mb-4">
+                      <span className="text-gray-600 flex items-center gap-1">
+                        👤 {blog.author || "Unknown"}
+                      </span>
+
+                      <div className="flex items-center gap-4">
+                        <span className="text-gray-500 flex items-center gap-1">
+                          📅 {new Date(blog.created_at).toLocaleDateString()}
+                        </span>
+
+                    <button
+                      onClick={() =>
+                        blog.is_wishlist
+                          ? dispatch(removeFromWishlist(blog._id))
+                          : dispatch(addToWishlist(blog._id))
+                      }
+                      className="transition transform hover:scale-125"
+                    >
+                      {blog.is_wishlist ? (
+                        <FaHeart className="text-red-600 drop-shadow-md text-xl transition-all duration-300" />
+                      ) : (
+                        <FaRegHeart className="text-purple-500 hover:text-purple-600 drop-shadow-sm text-xl transition-all duration-300" />
+                      )}
+                    </button>
+                      </div>
+                    </div>
+
+                    <button
+                      onClick={() => navigate(`/blog/${blog._id}`)}
+                      className="w-full px-4 py-2 bg-gradient-to-r from-purple-400 to-purple-600 text-white rounded-lg hover:from-purple-500 hover:to-purple-700 transition-all duration-200"
+                    >
+                      Read More
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
+          </div>
+
+          {/* Pagination */}
+          {blogs?.length > 0 && pagination?.total_pages > 1 && (
+            <div className="mt-10 mb-0">
+              <PaginationModal
+                currentPage={currentPage}
+                totalPages={pagination.total_pages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
-  );
-};
 
-export default OurBlog;
+    <Footer />
+  </div>
+);
+  };
+
+  export default OurBlog;

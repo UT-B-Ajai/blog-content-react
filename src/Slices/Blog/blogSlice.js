@@ -1,15 +1,14 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const API_URL = "http://localhost:5000/api/blogs";
+const OURBLOG_URL = "http://localhost:5000/api/blogs/my";
 const WISHLIST_URL = "http://localhost:5000/api/wishlist";
 
-
-// 🔑 Helper to get token
+// 🔑 Token Header
 const getAuthHeader = () => {
   const token = localStorage.getItem("token");
-  console.log(token ,"auth_token");
-  
   return {
     headers: {
       Authorization: `Bearer ${token}`,
@@ -18,9 +17,9 @@ const getAuthHeader = () => {
   };
 };
 
-//
-// 🟢 CREATE Blog
-//
+/* ----------------------------------------
+   CREATE BLOG
+---------------------------------------- */
 export const createBlog = createAsyncThunk(
   "blogs/createBlog",
   async (formData, { rejectWithValue }) => {
@@ -33,15 +32,17 @@ export const createBlog = createAsyncThunk(
   }
 );
 
-//
-// 🔵 GET All Blogs
-//
+/* ----------------------------------------
+   GET ALL BLOGS
+---------------------------------------- */
 export const fetchBlogs = createAsyncThunk(
   "blogs/fetchBlogs",
   async ({ page = 1, perPage = 10, search = "" } = {}, { rejectWithValue }) => {
     try {
       const response = await axios.get(
-        `${API_URL}?page=${page}&perPage=${perPage}&search=${encodeURIComponent(search)}`,
+        `${API_URL}?page=${page}&perPage=${perPage}&search=${encodeURIComponent(
+          search
+        )}`,
         getAuthHeader()
       );
       return response.data;
@@ -51,10 +52,29 @@ export const fetchBlogs = createAsyncThunk(
   }
 );
 
+/* ----------------------------------------
+   GET OUR BLOGS
+---------------------------------------- */
+export const fetchOurBlogs = createAsyncThunk(
+  "blogs/fetchOurBlogs",
+  async ({ page = 1, perPage = 10, search = "" } = {}, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${OURBLOG_URL}?page=${page}&perPage=${perPage}&search=${encodeURIComponent(
+          search
+        )}`,
+        getAuthHeader()
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to fetch blogs");
+    }
+  }
+);
 
-//
-// 🟣 GET Blog by ID
-//
+/* ----------------------------------------
+   GET BLOG BY ID
+---------------------------------------- */
 export const fetchBlogById = createAsyncThunk(
   "blogs/fetchBlogById",
   async (id, { rejectWithValue }) => {
@@ -67,14 +87,18 @@ export const fetchBlogById = createAsyncThunk(
   }
 );
 
-//
-// 🟠 UPDATE Blog
-//
+/* ----------------------------------------
+   UPDATE BLOG
+---------------------------------------- */
 export const updateBlog = createAsyncThunk(
   "blogs/updateBlog",
   async ({ id, formData }, { rejectWithValue }) => {
     try {
-      const response = await axios.put(`${API_URL}/${id}`, formData, getAuthHeader());
+      const response = await axios.put(
+        `${API_URL}/${id}`,
+        formData,
+        getAuthHeader()
+      );
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to update blog");
@@ -82,9 +106,9 @@ export const updateBlog = createAsyncThunk(
   }
 );
 
-//
-// 🔴 DELETE Blog
-//
+/* ----------------------------------------
+   DELETE BLOG
+---------------------------------------- */
 export const deleteBlog = createAsyncThunk(
   "blogs/deleteBlog",
   async (id, { rejectWithValue }) => {
@@ -97,18 +121,24 @@ export const deleteBlog = createAsyncThunk(
   }
 );
 
-//
-// ⭐ ADD to Wishlist
-//
+/* ----------------------------------------
+   ADD TO WISHLIST
+---------------------------------------- */
 export const addToWishlist = createAsyncThunk(
   "blogs/addToWishlist",
   async (id, { rejectWithValue }) => {
     try {
       const response = await axios.post(
-        `${WISHLIST_URL}`,
-        {},
-        getAuthHeader()
+        WISHLIST_URL,
+        { blog_id: id },
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+            "Content-Type": "application/json",
+          },
+        }
       );
+
       return response.data;
     } catch (error) {
       return rejectWithValue(error.response?.data || "Failed to add wishlist");
@@ -116,28 +146,33 @@ export const addToWishlist = createAsyncThunk(
   }
 );
 
-//
-// ⭐ REMOVE from Wishlist
-//
+/* ----------------------------------------
+   REMOVE FROM WISHLIST
+---------------------------------------- */
 export const removeFromWishlist = createAsyncThunk(
   "blogs/removeFromWishlist",
   async (id, { rejectWithValue }) => {
     try {
-      const response = await axios.delete(
-        `${WISHLIST_URL}/${id}`,
-        getAuthHeader()
-      );
+      const response = await axios.delete(WISHLIST_URL, {
+        data: { blog_id: id },
+        headers: {
+          ...getAuthHeader().headers,
+          "Content-Type": "application/json",
+        },
+      });
+
       return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Failed to remove wishlist");
+      return rejectWithValue(
+        error.response?.data || "Failed to remove wishlist"
+      );
     }
   }
 );
 
-
-//
-// 🧩 Slice
-//
+/* ----------------------------------------
+   SLICE
+---------------------------------------- */
 const blogSlice = createSlice({
   name: "blogs",
   initialState: {
@@ -153,40 +188,53 @@ const blogSlice = createSlice({
       state.message = null;
     },
   },
+
   extraReducers: (builder) => {
     builder
-      // CREATE
+      /* CREATE BLOG */
       .addCase(createBlog.pending, (state) => {
         state.loading = true;
       })
       .addCase(createBlog.fulfilled, (state, action) => {
         state.loading = false;
         state.message = action.payload.message;
-        state.blogs.unshift(action.payload.data);
       })
       .addCase(createBlog.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // FETCH ALL
+      /* FETCH ALL */
       .addCase(fetchBlogs.pending, (state) => {
         state.loading = true;
       })
       .addCase(fetchBlogs.fulfilled, (state, action) => {
         state.loading = false;
-          const { blogs, pagination } = action.payload.data || {};    
-          console.log(pagination,"page");
-                
-          state.blogs = blogs || [];
-          state.pagination = pagination || null;
+        const { blogs, pagination } = action.payload.data || {};
+        state.blogs = blogs || [];
+        state.pagination = pagination || null;
       })
       .addCase(fetchBlogs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // FETCH BY ID
+      /* FETCH OUR BLOGS */
+      .addCase(fetchOurBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchOurBlogs.fulfilled, (state, action) => {
+        state.loading = false;
+        const { blogs, pagination } = action.payload.data || {};
+        state.blogs = blogs || [];
+        state.pagination = pagination || null;
+      })
+      .addCase(fetchOurBlogs.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+      /* FETCH BY ID */
       .addCase(fetchBlogById.pending, (state) => {
         state.loading = true;
       })
@@ -199,7 +247,7 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // UPDATE
+      /* UPDATE */
       .addCase(updateBlog.pending, (state) => {
         state.loading = true;
       })
@@ -212,7 +260,7 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // DELETE
+      /* DELETE */
       .addCase(deleteBlog.pending, (state) => {
         state.loading = true;
       })
@@ -228,7 +276,7 @@ const blogSlice = createSlice({
         state.error = action.payload;
       })
 
-      // ⭐ ADD to Wishlist
+      /* ⭐ ADD TO WISHLIST */
       .addCase(addToWishlist.pending, (state) => {
         state.loading = true;
       })
@@ -236,40 +284,39 @@ const blogSlice = createSlice({
         state.loading = false;
         state.message = action.payload.message;
 
-        // OPTIONAL: Update blog list if wishlist status is returned
-        const updated = action.payload?.data;
+        const updated = action.payload.data; // { user_id, blog_id }
+
         if (updated) {
           state.blogs = state.blogs.map((b) =>
-            b._id === updated._id ? updated : b
+            b._id === updated.blog_id ? { ...b, is_wishlist: 1 } : b
           );
         }
+
+        toast.success(action.payload.message || "Added to wishlist!");
       })
       .addCase(addToWishlist.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      // ⭐ REMOVE from Wishlist
-      .addCase(removeFromWishlist.pending, (state) => {
-        state.loading = true;
-      })
+      /* ⭐ REMOVE FROM WISHLIST */
       .addCase(removeFromWishlist.fulfilled, (state, action) => {
         state.loading = false;
         state.message = action.payload.message;
 
-        // OPTIONAL: update list if API returns updated blog
-        const updated = action.payload?.data;
-        if (updated) {
-          state.blogs = state.blogs.map((b) =>
-            b._id === updated._id ? updated : b
-          );
-        }
+        // Use the blog ID passed when dispatching the thunk
+        const blogId = action.meta.arg;
+        // Update blogs array immediately
+        state.blogs = state.blogs.map((b) =>
+          b._id === blogId ? { ...b, is_wishlist: 0 } : b
+        );
+
+        toast.success(action.payload.message || "Removed from wishlist!");
       })
       .addCase(removeFromWishlist.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       });
-
   },
 });
 

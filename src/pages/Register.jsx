@@ -3,6 +3,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { registerUser } from "../Slices/Auth/authSlice";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Register = () => {
   const dispatch = useDispatch();
@@ -24,16 +25,18 @@ const Register = () => {
     }
 
     // Dispatch Redux action
-    dispatch(registerUser({
-      name: form.name,
-      email: form.email,
-      password: form.password,
-    }));
+    dispatch(
+      registerUser({
+        name: form.name,
+        email: form.email,
+        password: form.password,
+      })
+    );
   };
 
   useEffect(() => {
     if (success) {
-       toast.success("Registration successful!");
+      toast.success("Registration successful!");
       setForm({ name: "", email: "", password: "", confirmPassword: "" });
 
       setTimeout(() => {
@@ -41,6 +44,9 @@ const Register = () => {
       }, 2000);
     }
   }, [success, navigate]);
+
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   return (
     <div className="min-h-screen flex bg-purple-50">
@@ -63,7 +69,9 @@ const Register = () => {
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Name */}
             <div>
-              <label className="block text-purple-700 mb-1 font-medium">Name</label>
+              <label className="block text-purple-700 mb-1 font-medium">
+                Name
+              </label>
               <input
                 type="text"
                 placeholder="Enter your name"
@@ -76,7 +84,9 @@ const Register = () => {
 
             {/* Email */}
             <div>
-              <label className="block text-purple-700 mb-1 font-medium">Email</label>
+              <label className="block text-purple-700 mb-1 font-medium">
+                Email
+              </label>
               <input
                 type="email"
                 placeholder="Enter your email"
@@ -89,15 +99,30 @@ const Register = () => {
 
             {/* Password */}
             <div>
-              <label className="block text-purple-700 mb-1 font-medium">Password</label>
-              <input
-                type="password"
-                placeholder="Enter your password"
-                className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                required
-              />
+              <label className="block text-purple-700 mb-1 font-medium">
+                Password
+              </label>
+
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  placeholder="Enter your password"
+                  className="w-full px-4 py-2 pr-10 border border-purple-300 rounded-lg 
+                 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  value={form.password}
+                  onChange={(e) =>
+                    setForm({ ...form, password: e.target.value })
+                  }
+                  required
+                />
+
+                <span
+                  className="absolute right-3 top-3 cursor-pointer text-purple-600 text-lg"
+                  onClick={() => setShowPassword(!showPassword)}
+                >
+                  {showPassword ? <FaEye />: <FaEyeSlash />}
+                </span>
+              </div>
             </div>
 
             {/* Confirm Password */}
@@ -105,20 +130,33 @@ const Register = () => {
               <label className="block text-purple-700 mb-1 font-medium">
                 Confirm Password
               </label>
-              <input
-                type="password"
-                placeholder="Confirm your password"
-                className="w-full px-4 py-2 border border-purple-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-400"
-                value={form.confirmPassword}
-                onChange={(e) =>
-                  setForm({ ...form, confirmPassword: e.target.value })
-                }
-                required
-              />
+
+              <div className="relative">
+                <input
+                  type={showConfirmPassword ? "text" : "password"}
+                  placeholder="Confirm your password"
+                  className="w-full px-4 py-2 pr-10 border border-purple-300 rounded-lg 
+                 focus:outline-none focus:ring-2 focus:ring-purple-400"
+                  value={form.confirmPassword}
+                  onChange={(e) =>
+                    setForm({ ...form, confirmPassword: e.target.value })
+                  }
+                  required
+                />
+
+                <span
+                  className="absolute right-3 top-3 cursor-pointer text-purple-600 text-lg"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ?  <FaEye />: <FaEyeSlash />}
+                </span>
+              </div>
             </div>
 
             {/* Status Messages */}
-            {loading && <p className="text-center text-purple-500">Registering...</p>}
+            {loading && (
+              <p className="text-center text-purple-500">Registering...</p>
+            )}
             {error && <p className="text-center text-red-500">{error}</p>}
 
             {/* Register Button */}
