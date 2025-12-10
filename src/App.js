@@ -3,12 +3,14 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import { ToastContainer } from "react-toastify";
 import ProtectedRoute from "./components/ProtectedRoute";
 import "react-toastify/dist/ReactToastify.css";
+import { ErrorBoundary } from "react-error-boundary";
 
-// ✅ Lazy load each page
+// Lazy Loaded Pages
 const Login = lazy(() => import("./pages/Login"));
 const Register = lazy(() => import("./pages/Register"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 const Blogs = lazy(() => import("./pages/Blogs"));
+const MyBlogs = lazy(() => import("./pages/MyBlogs"));
 const Home = lazy(() => import("./pages/Home"));
 const OurBlog = lazy(() => import("./pages/OurBlog"));
 const BlogDetails = lazy(() => import("./pages/BlogDetails"));
@@ -26,20 +28,83 @@ function App() {
         }
       >
         <Routes>
+          {/* ✅ Public Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
-          <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/blogs" element={<Blogs />} />
-          <Route path="/users" element={<Users />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/ourblog" element={<OurBlog />} />
-          <Route path="/blog/:id" element={<BlogDetails />} />
-          <Route path="/contact" element={<Contact />} />
+
+          {/* ✅ Protected Routes */}
+          <Route
+            path="/dashboard"
+            element={
+              <ProtectedRoute>
+                <ErrorBoundary fallback={<div>Something went wrong</div>}>
+                  <Dashboard />
+                </ErrorBoundary>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blogs"
+            element={
+              <ProtectedRoute>
+                <Blogs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/myblogs"
+            element={
+              <ProtectedRoute>
+                <MyBlogs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/users"
+            element={
+              <ProtectedRoute>
+                <Users />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/ourblog"
+            element={
+              <ProtectedRoute>
+                <OurBlog />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/blog/:id"
+            element={
+              <ProtectedRoute>
+                <BlogDetails />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/contact"
+            element={
+              <ProtectedRoute>
+                <Contact />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* Default route */}
           <Route path="*" element={<Login />} />
         </Routes>
 
-        {/* ✅ ToastContainer should be inside Router but outside Routes */}
-
+        {/* Toast Container */}
         <ToastContainer
           position="top-right"
           autoClose={2500}
@@ -50,21 +115,13 @@ function App() {
           draggable
           theme="colored"
           toastStyle={{
-            backgroundColor: "#7C3AED", // Tailwind's purple-600
+            backgroundColor: "#7C3AED",
             color: "#fff",
             borderRadius: "12px",
             fontSize: "15px",
             fontWeight: "500",
             boxShadow: "0 4px 12px rgba(124, 58, 237, 0.3)",
           }}
-          progressStyle={(toast) => ({
-            background:
-              toast?.type === "success"
-                ? "linear-gradient(to right, #A855F7, #7C3AED)"
-                : toast?.type === "error"
-                ? "linear-gradient(to right, #F87171, #DC2626)"
-                : "linear-gradient(to right, #9CA3AF, #6B7280)",
-          })}
         />
       </Suspense>
     </Router>

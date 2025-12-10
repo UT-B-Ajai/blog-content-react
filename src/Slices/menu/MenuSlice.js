@@ -10,7 +10,6 @@ const menuSlice = createSlice({
       state.isOpen = !state.isOpen;
     },
     openMenu: (state) => {
-      console.log(",mdbhbfjhdf");
       
       state.isOpen = true;
     },

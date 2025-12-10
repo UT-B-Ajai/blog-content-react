@@ -4,6 +4,9 @@ import blogReducer from "../Slices/Blog/blogSlice";
 import menuReducer from "../Slices/menu/MenuSlice";
 import usersReducer from "../Slices/User/userSlice";
 import dashboardReducer from "../Slices/Dashboard/dashboardSlice";
+import commentReducer from "../Slices/Comments/commentSlice";
+import notificationReducer from "../Slices/Notifications/notificationSlice";
+import { comment } from "postcss";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
@@ -11,6 +14,8 @@ export const store = configureStore({
     menu : menuReducer,
     users: usersReducer,
     dashboard:dashboardReducer,
+    comments: commentReducer,
+    notifications:notificationReducer,
 
   },
 

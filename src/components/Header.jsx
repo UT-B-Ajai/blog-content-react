@@ -6,6 +6,10 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const dispatch = useDispatch();
   const { isOpen } = useSelector((state) => state.menu);
+   const { user } = useSelector((state) => state.auth);
+    const loggedUser = user || JSON.parse(localStorage.getItem("user"));
+  console.log(loggedUser,"loggedUser");
+  
   return (
     <div className="flex items-center justify-between p-4 bg-white  sticky top-0 z-40 w-full justify-center md:justify-end lg:justify-end">
       <button
@@ -19,7 +23,7 @@ const Header = () => {
 
       {/* LEFT SIDE → Admin Panel Title */}
     <span className="text-gray-800 text-sm md:text-base font-bold invisible sm:visible">
-      Admin Panel
+   👋 Welcome {loggedUser?.name}
     </span>
 
 
@@ -27,7 +31,7 @@ const Header = () => {
   {/* RIGHT SIDE → Admin + Profile */}
   <div className="flex items-center space-x-3">
     <span className="text-gray-600 text-sm md:text-base font-medium">
-      Admin
+     {loggedUser?.role === "admin" ? "Admin" : "User"}
     </span>
     <img
       className="w-10 h-10 p-1 rounded-full ring-2 ring-gray-300 object-cover"

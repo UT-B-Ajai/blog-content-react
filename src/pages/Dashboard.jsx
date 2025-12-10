@@ -45,15 +45,15 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
             <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col items-center">
               <h3 className="text-gray-500 text-sm">Total Blogs</h3>
-              <span className="text-3xl font-bold">{data.total_blogs}</span>
+              <span className="text-3xl font-bold">{data.total_blogs ?? 0}</span>
             </div>
             <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col items-center">
               <h3 className="text-gray-500 text-sm">Total Authors</h3>
-              <span className="text-3xl font-bold">{data.total_users}</span>
+              <span className="text-3xl font-bold">{data.total_users ?? 0}</span>
             </div>
             <div className="bg-white shadow-lg rounded-xl p-6 flex flex-col items-center">
               <h3 className="text-gray-500 text-sm">Total Wishlist</h3>
-              <span className="text-3xl font-bold">Coming Soon</span>
+              <span className="text-3xl font-bold">{data.total_wishlist ?? 0}</span>
             </div>
           </div>
         </main>

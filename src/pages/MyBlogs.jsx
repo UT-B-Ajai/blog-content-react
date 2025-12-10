@@ -5,7 +5,7 @@ import { FaEdit, FaTrash, FaBars, FaSearch } from "react-icons/fa";
 import { FaAngleDoubleLeft, FaAngleDoubleRight } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
 import {
-  fetchBlogs,
+  fetchOurBlogs,
   createBlog,
   updateBlog,
   deleteBlog,
@@ -13,11 +13,11 @@ import {
 import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 
-const Blogs = () => {
+const MyBlogs = () => {
   const dispatch = useDispatch();
   const { blogs, loading, pagination } = useSelector((state) => state.blogs);
   console.log(pagination, "pageinationdata");
-console.log(blogs ,"blog data");
+  console.log(blogs, "blog data");
 
   const [search, setSearch] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -37,7 +37,7 @@ console.log(blogs ,"blog data");
   const totalPages = pagination?.total_pages || 1;
   // 🟣 Fetch all blogs
   useEffect(() => {
-    dispatch(fetchBlogs({ page: currentPage, perPage, search }));
+    dispatch(fetchOurBlogs({ page: currentPage, perPage, search }));
   }, [dispatch, currentPage, perPage, search]);
 
   // 🔍 Search filter
@@ -67,7 +67,7 @@ const handleSaveBlog = async () => {
 
   // Refresh blog list after success
   if (response?.meta?.requestStatus === "fulfilled") {
-    await dispatch(fetchBlogs({ page: currentPage, perPage, search }));
+    await dispatch(fetchOurBlogs({ page: currentPage, perPage, search }));
 
     setIsModalOpen(false);
     resetForm();
@@ -96,7 +96,6 @@ const handleSaveBlog = async () => {
 
   // 🗑️ Delete
   const openDeleteModal = (blog) => {
-
     setDeleteBlogId(blog?._id);
     setIsDeleteModalOpen(true);
   };
@@ -106,48 +105,48 @@ const handleSaveBlog = async () => {
     setIsDeleteModalOpen(false);
   };
 
-return (
-  <div className="flex h-screen overflow-hidden bg-gray-100">
-    {/* Sidebar */}
-    <Sidebar />
+  return (
+    <div className="flex h-screen overflow-hidden bg-gray-100">
+      {/* Sidebar */}
+      <Sidebar />
 
-    {/* Main Section */}
-    <div className="flex-1 flex flex-col ml-0 md:ml-64 h-screen overflow-hidden">
-      {/* Header */}
-      <div className="flex items-center justify-between p-4 bg-white shadow-sm border-b sticky top-0 z-40">
-        <Header />
-      </div>
-
-      {/* Scrollable Content */}
-      <div className="p-6 flex-1 overflow-y-auto">
-        <h2 className="text-2xl font-bold">Blogs</h2>
-
-        {/* Toolbar */}
-        <div className="flex flex-col md:flex-row justify-end items-center mt-0 mb-4 gap-4">
-          <button
-            className="bg-gradient-to-r from-purple-400 to-purple-600 text-white py-2 px-4 rounded-lg font-medium"
-            onClick={() => {
-              setIsModalOpen(true);
-              resetForm();
-            }}
-          >
-            Add Blog
-          </button>
-
-          <div className="relative w-full md:w-64">
-            <FaSearch className="absolute left-3 top-3" />
-            <input
-              type="text"
-              placeholder="Search blogs..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="border border-gray-300 p-2 pl-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
-            />
-          </div>
+      {/* Main Section */}
+      <div className="flex-1 flex flex-col ml-0 md:ml-64 h-screen overflow-hidden">
+        {/* Header */}
+        <div className="flex items-center justify-between p-4 bg-white shadow-sm border-b sticky top-0 z-40">
+          <Header />
         </div>
 
-        {/* Blog Table */}
-       <div className="bg-white shadow-md rounded-lg">
+        {/* Scrollable Content */}
+        <div className="p-6 flex-1 overflow-y-auto">
+          <h2 className="text-2xl font-bold">Blogs</h2>
+
+          {/* Toolbar */}
+          <div className="flex flex-col md:flex-row justify-end items-center mt-0 mb-4 gap-4">
+            <button
+              className="bg-gradient-to-r from-purple-400 to-purple-600 text-white py-2 px-4 rounded-lg font-medium"
+              onClick={() => {
+                setIsModalOpen(true);
+                resetForm();
+              }}
+            >
+              Add Blog
+            </button>
+
+            <div className="relative w-full md:w-64">
+              <FaSearch className="absolute left-3 top-3" />
+              <input
+                type="text"
+                placeholder="Search blogs..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="border border-gray-300 p-2 pl-10 rounded-lg w-full focus:outline-none focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+              />
+            </div>
+          </div>
+
+          {/* Blog Table */}
+          <div className="bg-white shadow-md rounded-lg">
             <div className="overflow-y-auto max-h-[60vh] scrollbar-hide">
               <table className="w-full table-fixed text-sm">
                 <thead className="sticky top-0 bg-gradient-to-r from-purple-100 to-purple-200 text-gray-800 uppercase text-xs font-semibold z-10">
@@ -226,40 +225,50 @@ return (
             </div>
           </div>
 
-        {/* Pagination */}
-        <div className="py-3 flex justify-end space-x-2">
-          <button
-            className={`px-3 py-1 bg-gray-200 rounded ${currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""}`}
-            onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
-            disabled={currentPage === 1}
-          >
-            <FaAngleDoubleLeft />
-          </button>
-
-          {Array.from({ length: totalPages }, (_, i) => (
+          {/* Pagination */}
+          <div className="py-3 flex justify-end space-x-2">
             <button
-              key={i}
-              className={`px-3 py-1 rounded ${currentPage === i + 1 ? "bg-purple-500 text-white" : "bg-gray-200"}`}
-              onClick={() => setCurrentPage(i + 1)}
+              className={`px-3 py-1 bg-gray-200 rounded ${
+                currentPage === 1 ? "opacity-50 cursor-not-allowed" : ""
+              }`}
+              onClick={() => setCurrentPage((p) => Math.max(p - 1, 1))}
+              disabled={currentPage === 1}
             >
-              {i + 1}
+              <FaAngleDoubleLeft />
             </button>
-          ))}
 
-          <button
-            className={`px-3 py-1 bg-gray-200 rounded ${currentPage === totalPages ? "opacity-50 cursor-not-allowed" : ""}`}
-            onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
-            disabled={currentPage === totalPages}
-          >
-            <FaAngleDoubleRight />
-          </button>
+            {Array.from({ length: totalPages }, (_, i) => (
+              <button
+                key={i}
+                className={`px-3 py-1 rounded ${
+                  currentPage === i + 1
+                    ? "bg-purple-500 text-white"
+                    : "bg-gray-200"
+                }`}
+                onClick={() => setCurrentPage(i + 1)}
+              >
+                {i + 1}
+              </button>
+            ))}
+
+            <button
+              className={`px-3 py-1 bg-gray-200 rounded ${
+                currentPage === totalPages
+                  ? "opacity-50 cursor-not-allowed"
+                  : ""
+              }`}
+              onClick={() => setCurrentPage((p) => Math.min(p + 1, totalPages))}
+              disabled={currentPage === totalPages}
+            >
+              <FaAngleDoubleRight />
+            </button>
+          </div>
         </div>
       </div>
-    </div>
 
-    {/* ======================== MODALS OUTSIDE MAIN CONTENT ======================== */}
+      {/* ======================== MODALS OUTSIDE MAIN CONTENT ======================== */}
 
-    {isModalOpen && (
+      {isModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-40 backdrop-blur-sm flex justify-center items-center z-50 transition-all duration-300">
           <div className="bg-white w-full max-w-3xl rounded-2xl shadow-2xl p-6 relative animate-fadeIn max-h-[90vh] overflow-y-auto">
             {/* Close Button */}
@@ -306,7 +315,9 @@ return (
                       className="w-full h-full object-cover rounded-lg"
                     />
                   ) : (
-                    <p className="text-purple-500">Click or drag file to upload</p>
+                    <p className="text-purple-500">
+                      Click or drag file to upload
+                    </p>
                   )}
                   <input
                     type="file"
@@ -330,7 +341,9 @@ return (
                       className="w-full h-full object-cover rounded-lg"
                     />
                   ) : (
-                    <p className="text-purple-500">Click or drag file to upload</p>
+                    <p className="text-purple-500">
+                      Click or drag file to upload
+                    </p>
                   )}
                   <input
                     type="file"
@@ -382,9 +395,8 @@ return (
         </div>
       )}
 
-
-    {/* Delete Modal */}
-    {isDeleteModalOpen && (
+      {/* Delete Modal */}
+      {isDeleteModalOpen && (
         <div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm  flex justify-center items-center z-50">
           <div className="bg-white p-6 rounded-lg w-80 text-center">
             <h3 className="text-lg font-semibold mb-4 text-gray-800">
@@ -407,10 +419,8 @@ return (
           </div>
         </div>
       )}
-
-  </div>
-);
-
+    </div>
+  );
 };
 
-export default Blogs;
+export default MyBlogs;

@@ -6,10 +6,13 @@ export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/register", userData);
+      const response = await axios.post(
+        "http://localhost:5000/api/register",
+        userData
+      );
       return response.data; // success response
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Something went wrong");
+      return rejectWithValue(error.response?.data || { message: "Something went wrong" });
     }
   }
 );
@@ -19,10 +22,13 @@ export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (credentials, { rejectWithValue }) => {
     try {
-      const response = await axios.post("http://localhost:5000/api/login", credentials);      
-       return response.data; 
+      const response = await axios.post(
+        "http://localhost:5000/api/login",
+        credentials
+      );
+      return response.data;
     } catch (error) {
-      return rejectWithValue(error.response?.data || "Invalid login credentials");
+      return rejectWithValue(error.response?.data || { message: "Invalid login credentials" });
     }
   }
 );
@@ -37,18 +43,22 @@ const authSlice = createSlice({
     token: localStorage.getItem("token") || null,
   },
   reducers: {
-        logout: (state) => {
-        state.user = null;
-        state.token = null;
-        state.success = false;
-        state.error = null;
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
-        },
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
+      state.success = false;
+      state.error = null;
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      localStorage.removeItem("role");
+    },
+    clearError: (state) => {
+      state.error = null;
+    },
   },
   extraReducers: (builder) => {
     builder
-      // ✅ Register cases
+      // ✅ Register
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -61,32 +71,32 @@ const authSlice = createSlice({
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.data;
+        state.error = action.payload?.message || "Something went wrong";
         state.success = false;
       })
 
-      // ✅ Login cases
+      // ✅ Login
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-        .addCase(loginUser.fulfilled, (state, action) => {          
+      .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload.data.user || null;        
+        state.user = action.payload.data.user || null;
         state.token = action.payload.data.token || null;
         state.success = true;
 
         localStorage.setItem("token", action.payload.data.token);
         localStorage.setItem("role", action.payload.data.user?.role || "");
-        })
-
+        localStorage.setItem("user", JSON.stringify(action.payload.data.user));
+      })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload.data;
+        state.error = action.payload?.message || "Invalid login credentials";
         state.success = false;
       });
   },
 });
 
-export const { logout } = authSlice.actions;
+export const { logout, clearError } = authSlice.actions;
 export default authSlice.reducer;
