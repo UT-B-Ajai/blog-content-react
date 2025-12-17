@@ -63,17 +63,17 @@ const Navbar = () => {
   }, [loggedUser]);
 
   /* Close dropdowns on outside click */
-useEffect(() => {
-  const handleClickOutside = (e) => {
-    if (
-      notificationRef.current &&
-      !notificationRef.current.contains(e.target)
-    ) ;
-  };
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(e.target)
+      );
+    };
 
-  document.addEventListener("mousedown", handleClickOutside);
-  return () => document.removeEventListener("mousedown", handleClickOutside);
-}, []);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const markAsRead = (notification) => {
     if (!notification.read_status)
@@ -124,6 +124,9 @@ useEffect(() => {
             </Link>
             <Link to="/ourblog" className="hover:underline">
               Our Blog
+            </Link>
+            <Link to="/wishlist" className="hover:underline">
+              Wishlist
             </Link>
             <Link to="/contact" className="hover:underline">
               Contact Us
@@ -292,6 +295,13 @@ useEffect(() => {
             onClick={() => setMenuOpen(false)}
           >
             Our Blog
+          </Link>
+          <Link
+            to="/wishlist"
+            className={linkClass("/wishlist")}
+            onClick={() => setMenuOpen(false)}
+          >
+            Wishlist
           </Link>
           <Link
             to="/contact"
