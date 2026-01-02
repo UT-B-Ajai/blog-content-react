@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import axios from "axios";
+import { toast } from "react-toastify";
 
 const COMMENT_API = "http://localhost:5000/api/comments";
 
@@ -31,12 +32,11 @@ export const fetchComments = createAsyncThunk(
 --------------------------------------------------------- */
 export const addComment = createAsyncThunk(
   "comments/addComment",
-  async ({  blog_id, comment }, { rejectWithValue }) => {
-    
+  async ({ blog_id, comment }, { rejectWithValue }) => {
     try {
       const res = await axios.post(
         `${COMMENT_API}`,
-        {  blog_id, comment },
+        { blog_id, comment },
         authHeader()
       );
       return res.data.data; // newly created comment
@@ -51,16 +51,20 @@ export const addComment = createAsyncThunk(
 --------------------------------------------------------- */
 export const editComment = createAsyncThunk(
   "comments/editComment",
-  async ({ commentId, content }, { rejectWithValue }) => {
+  async ({ id, comment }, { rejectWithValue }) => {
     try {
-      const res = await axios.put(
-        `${COMMENT_API}/${commentId}`,
-        { content },
+      const response = await axios.put(
+        `http://localhost:5000/api/comments/${id}`,
+        { comment },
         authHeader()
       );
-      return res.data.data; // updated comment
-    } catch (err) {
-      return rejectWithValue(err.response?.data || "Failed to update comment");
+
+      return response.data; // success
+    } catch (error) {
+      // Handle backend errors properly
+      return rejectWithValue(
+        error.response?.data || { message: "Something went wrong" }
+      );
     }
   }
 );
@@ -70,10 +74,10 @@ export const editComment = createAsyncThunk(
 --------------------------------------------------------- */
 export const deleteComment = createAsyncThunk(
   "comments/deleteComment",
-  async (commentId, { rejectWithValue }) => {
+  async (id, { rejectWithValue }) => {
     try {
-      await axios.delete(`${COMMENT_API}/${commentId}`, authHeader());
-      return commentId; // return ID to remove from UI
+      await axios.delete(`${COMMENT_API}/${id}`, authHeader());
+      return id; // return ID to remove from UI
     } catch (err) {
       return rejectWithValue(err.response?.data || "Failed to delete comment");
     }
@@ -110,24 +114,33 @@ const commentSlice = createSlice({
       })
 
       /* ---------------------- Add Comment ---------------------- */
+      /* ---------------------- Add Comment ---------------------- */
       .addCase(addComment.fulfilled, (state, action) => {
-        state.comments.push(action.payload);
+        state.comments.push(action.payload.data || action.payload);
         state.message = "Comment added successfully";
+        toast.success(action.payload.message || "Comment added successfully");
       })
 
       /* ---------------------- Edit Comment ---------------------- */
       .addCase(editComment.fulfilled, (state, action) => {
-        const updated = action.payload;
+        const updated = action.payload.data || action.payload;
+
         state.comments = state.comments.map((c) =>
           c._id === updated._id ? updated : c
         );
+
         state.message = "Comment updated successfully";
+        toast.success(action.payload.message || "Comment updated successfully");
       })
 
       /* ---------------------- Delete Comment ---------------------- */
       .addCase(deleteComment.fulfilled, (state, action) => {
-        state.comments = state.comments.filter((c) => c._id !== action.payload);
+        const deletedId = action.payload.id || action.payload;
+
+        state.comments = state.comments.filter((c) => c._id !== deletedId);
+
         state.message = "Comment deleted successfully";
+        toast.success(action.payload.message || "Comment deleted successfully");
       });
   },
 });

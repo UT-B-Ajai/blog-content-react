@@ -121,6 +121,27 @@ export const deleteBlog = createAsyncThunk(
   }
 );
 
+
+/* ----------------------------------------
+   GET WISHLIST BLOGS
+---------------------------------------- */
+export const fetchWishlistBlogs = createAsyncThunk(
+  "blogs/fetchWishlistBlogs",
+  async ({ page = 1, perPage = 10, search = "" } = {}, { rejectWithValue }) => {
+    try {
+      const response = await axios.get(
+        `${WISHLIST_URL}?page=${page}&perPage=${perPage}&search=${encodeURIComponent(
+          search
+        )}`,
+        getAuthHeader()
+      );
+      return response.data;
+    } catch (error) {
+      return rejectWithValue(error.response?.data || "Failed to fetch blogs");
+    }
+  }
+);
+
 /* ----------------------------------------
    ADD TO WISHLIST
 ---------------------------------------- */
@@ -272,6 +293,21 @@ const blogSlice = createSlice({
         );
       })
       .addCase(deleteBlog.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+
+            /* FETCH OUR BLOGS */
+      .addCase(fetchWishlistBlogs.pending, (state) => {
+        state.loading = true;
+      })
+      .addCase(fetchWishlistBlogs.fulfilled, (state, action) => {
+        state.loading = false;
+        const { blogs, pagination } = action.payload.data || {};
+        state.blogs = blogs || [];
+        state.pagination = pagination || null;
+      })
+      .addCase(fetchWishlistBlogs.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
